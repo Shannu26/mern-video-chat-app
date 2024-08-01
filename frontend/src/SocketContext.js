@@ -1,6 +1,7 @@
 import React, { createContext, useState, useRef, useEffect } from "react";
 import { io } from "socket.io-client";
 import Peer from "simple-peer";
+import process from "process";
 
 const SocketContext = createContext();
 
@@ -46,6 +47,10 @@ const ContextProvider = ({ children }) => {
       const { from, name: callerName, signal } = data;
       setCall({ isReceivedCall: true, from, name: callerName, signal });
     });
+
+    socket.current.on("call-ended", () => {
+      leaveCall();
+    });
   }, [myVideo]);
 
   const answerCall = () => {
@@ -58,6 +63,10 @@ const ContextProvider = ({ children }) => {
 
     peer.on("stream", (currentStream) => {
       if (userVideo.current) userVideo.current.srcObject = currentStream;
+    });
+
+    peer.on("close", () => {
+      leaveCall();
     });
 
     peer.signal(call.signal);
@@ -79,6 +88,10 @@ const ContextProvider = ({ children }) => {
       if (userVideo.current) userVideo.current.srcObject = currentStream;
     });
 
+    peer.on("close", () => {
+      leaveCall();
+    });
+
     socket.current.on("call-accepted", (signal) => {
       setCallAccepted(true);
       peer.signal(signal);
@@ -89,8 +102,7 @@ const ContextProvider = ({ children }) => {
 
   const leaveCall = () => {
     setCallEnded(true);
-    // connectionRef.current.destroy();
-    window.location.reload();
+    connectionRef.current.destroy();
   };
 
   return (
