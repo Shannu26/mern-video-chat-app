@@ -7,9 +7,9 @@ export default function App() {
     <div>
       <h1 className="text-3xl font-bold underline">Video Chat App</h1>
       <VideoPlayer />
-      <Options>
+      {/* <Options>
         <Notifications />
-      </Options>
+      </Options> */}
     </div>
   );
 }

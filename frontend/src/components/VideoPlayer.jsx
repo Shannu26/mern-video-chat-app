@@ -1,17 +1,17 @@
 import React, { useContext } from "react";
 import { SocketContext } from "../SocketContext";
+import Video from "./Video";
 
 const VideoPlayer = () => {
-  const { stream, callAccepted, callEnded, myVideo, userVideo } =
-    useContext(SocketContext);
+  const { stream, myVideo, peers, joinRoom } = useContext(SocketContext);
+  console.log(peers);
   return (
     <div>
-      {stream && (
-        <video ref={myVideo} playsInline muted autoPlay className="border-2" />
-      )}
-      {callAccepted && !callEnded && (
-        <video ref={userVideo} playsInline autoPlay className="border-2" />
-      )}
+      <video ref={myVideo} muted autoPlay playsInline />
+      {peers.map((peer, index) => {
+        return <Video key={index} peer={peer} stream={stream.clone()} />;
+      })}
+      <button onClick={joinRoom}>Join Room</button>
     </div>
   );
 };

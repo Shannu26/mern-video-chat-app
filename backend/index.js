@@ -20,20 +20,30 @@ app.get("/", (req, res) => {
 });
 
 io.on("connection", (socket) => {
-  socket.emit("me", socket.id);
+  socket.on("join-room", (roomId) => {
+    socket.join(roomId);
+    console.log(`${socket.id} has joined`);
 
-  socket.on("disconnect", () => {
-    socket.broadcast.emit("call-ended");
-  });
+    socket.to(roomId).emit("user-connected", socket.id);
 
-  socket.on("call-user", (data) => {
-    const { userToCall, signalData, from, name } = data;
-    io.to(userToCall).emit("call-user", { signal: signalData, from, name });
-  });
+    socket.on("sending-signal", ({ userToSignal, signal }) => {
+      console.log(`${socket.id} -> ${userToSignal}`);
+      socket
+        .to(userToSignal)
+        .emit("initiator-sending-signal", { from: socket.id, signal });
+    });
 
-  socket.on("answer-call", (data) => {
-    const { to, signal } = data;
-    io.to(to).emit("call-accepted", signal);
+    socket.on("returning-signal", ({ userToSignal, signal }) => {
+      console.log(`${socket.id} -> ${userToSignal}`);
+      socket
+        .to(userToSignal)
+        .emit("receiver-sending-signal", { from: socket.id, signal });
+    });
+
+    socket.on("disconnect", () => {
+      console.log(`${socket.id} has left`);
+      socket.to(roomId).emit("user-disconnected", socket.id);
+    });
   });
 });
 
