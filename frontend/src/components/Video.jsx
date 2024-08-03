@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 
-const Video = ({ peer, stream }) => {
+const Video = ({ peer }) => {
   const ref = useRef();
 
   useEffect(() => {
@@ -15,7 +15,6 @@ const Video = ({ peer, stream }) => {
       ref={ref}
       autoPlay
       playsInline
-      muted
       width={"100px"}
       height={"100px"}
       style={{ border: "1px solid red" }}

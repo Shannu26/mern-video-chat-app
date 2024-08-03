@@ -20,7 +20,7 @@ app.get("/", (req, res) => {
 });
 
 io.on("connection", (socket) => {
-  socket.on("join-room", (roomId) => {
+  socket.on("join-room", ({ roomId, userName }) => {
     socket.join(roomId);
     console.log(`${socket.id} has joined`);
 

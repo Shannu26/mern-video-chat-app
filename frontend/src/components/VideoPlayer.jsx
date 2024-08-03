@@ -3,15 +3,17 @@ import { SocketContext } from "../SocketContext";
 import Video from "./Video";
 
 const VideoPlayer = () => {
-  const { stream, myVideo, peers, joinRoom } = useContext(SocketContext);
-  console.log(peers);
+  const { stream, myVideo, peers, joinRoom, toggleAudio, toggleVideo } =
+    useContext(SocketContext);
   return (
     <div>
-      <video ref={myVideo} muted autoPlay playsInline />
+      <video ref={myVideo} autoPlay playsInline muted />
       {peers.map((peer, index) => {
-        return <Video key={index} peer={peer} stream={stream.clone()} />;
+        return <Video key={index} peer={peer} />;
       })}
-      <button onClick={joinRoom}>Join Room</button>
+      <button onClick={() => joinRoom("room-1", "Shannu")}>Join Room</button>
+      <button onClick={toggleVideo}>Toggle Video</button>
+      <button onClick={toggleAudio}>Toggle Audio</button>
     </div>
   );
 };

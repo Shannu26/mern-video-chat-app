@@ -23,21 +23,36 @@ const ContextProvider = ({ children }) => {
       setMyId(socket.current.id);
     });
 
-    // Getting user permission for their audio and video streams
-    navigator.mediaDevices
-      .getUserMedia({ video: true, audio: true })
-      .then((stream) => {
-        console.log(stream);
-        setStream(stream);
-        myVideo.current.srcObject = stream;
-      });
-
     return () => {
       socket.current.disconnect();
     };
   }, [myVideo]);
 
-  const joinRoom = () => {
+  const getUserMedia = () => {
+    // Getting user permission for their audio and video streams
+    navigator.mediaDevices
+      .getUserMedia({ video: true, audio: true })
+      .then((stream) => {
+        setStream(stream);
+        myVideo.current.srcObject = stream;
+      });
+  };
+
+  const toggleAudio = () => {
+    if (stream) {
+      const audioTrack = stream.getAudioTracks()[0];
+      audioTrack.enabled = !audioTrack.enabled;
+    }
+  };
+
+  const toggleVideo = () => {
+    if (stream) {
+      const videoTrack = stream.getVideoTracks()[0];
+      videoTrack.enabled = !videoTrack.enabled;
+    }
+  };
+
+  const joinRoom = (roomId, userName) => {
     socket.current.on("user-connected", (userId) => {
       const peer = createPeer(userId);
       peersRef.current.push({
@@ -66,11 +81,10 @@ const ContextProvider = ({ children }) => {
 
     socket.current.on("receiver-sending-signal", ({ from: peerId, signal }) => {
       const peerRef = peersRef.current.find((peer) => peer.peerId === peerId);
-      console.log(peerRef);
       peerRef.peer.signal(signal);
     });
 
-    socket.current.emit("join-room", "room-1");
+    socket.current.emit("join-room", { roomId: roomId, userName: userName });
   };
 
   const createPeer = (userToSignal) => {
@@ -98,7 +112,6 @@ const ContextProvider = ({ children }) => {
     });
 
     peer.on("signal", (signal) => {
-      console.log(stream);
       socket.current.emit("returning-signal", {
         userToSignal: peerId,
         signal,
@@ -118,6 +131,9 @@ const ContextProvider = ({ children }) => {
         peers,
         stream,
         joinRoom,
+        toggleAudio,
+        toggleVideo,
+        getUserMedia,
       }}
     >
       {children}
