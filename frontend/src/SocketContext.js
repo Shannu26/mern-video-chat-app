@@ -2,6 +2,7 @@ import React, { createContext, useState, useRef, useEffect } from "react";
 import { io } from "socket.io-client";
 import Peer from "simple-peer";
 import process from "process";
+import { useNavigate } from "react-router-dom";
 
 const SocketContext = createContext();
 
@@ -9,9 +10,10 @@ const ContextProvider = ({ children }) => {
   // My Audio-Video Stream
   const socket = useRef();
   const [stream, setStream] = useState(null);
+  const [name, setName] = useState("");
   const [myId, setMyId] = useState("");
-
-  const connectionRef = useRef();
+  const [audioOn, setAudioOn] = useState(true);
+  const [videoOn, setVideoOn] = useState(true);
 
   const myVideo = useRef();
   const peersRef = useRef([]);
@@ -34,7 +36,7 @@ const ContextProvider = ({ children }) => {
       .getUserMedia({ video: true, audio: true })
       .then((stream) => {
         setStream(stream);
-        myVideo.current.srcObject = stream;
+        if (myVideo.current) myVideo.current.srcObject = stream;
       });
   };
 
@@ -42,6 +44,7 @@ const ContextProvider = ({ children }) => {
     if (stream) {
       const audioTrack = stream.getAudioTracks()[0];
       audioTrack.enabled = !audioTrack.enabled;
+      setAudioOn((audio) => !audio);
     }
   };
 
@@ -49,17 +52,30 @@ const ContextProvider = ({ children }) => {
     if (stream) {
       const videoTrack = stream.getVideoTracks()[0];
       videoTrack.enabled = !videoTrack.enabled;
+      setVideoOn((video) => !video);
     }
   };
 
+  const leaveRoom = () => {
+    socket.current.disconnect();
+    if (stream) {
+      console.log("Hello");
+      stream.getTracks().forEach((track) => track.stop());
+      setStream(null);
+    }
+    myVideo.current.srcObject = null;
+    window.location.href = "/";
+  };
+
   const joinRoom = (roomId, userName) => {
+    setName(userName);
     socket.current.on("user-connected", (userId) => {
-      const peer = createPeer(userId);
+      const peer = createPeer(userId, userName);
       peersRef.current.push({
         peerId: userId,
         peer,
       });
-      setPeers((users) => [...users, peer]);
+      setPeers((users) => [...users, { peer, peerId: userId, peerName: "" }]);
     });
 
     socket.current.on("user-disconnected", (userId) => {
@@ -70,24 +86,37 @@ const ContextProvider = ({ children }) => {
       setPeers(peers.map((peer) => peer.peer));
     });
 
-    socket.current.on("initiator-sending-signal", ({ from, signal }) => {
-      const peer = addPeer(from, signal);
-      peersRef.current.push({
-        peerId: from,
-        peer,
-      });
-      setPeers((users) => [...users, peer]);
-    });
+    socket.current.on(
+      "initiator-sending-signal",
+      ({ from, signal, peerName }) => {
+        const peer = addPeer(from, signal, userName);
+        peersRef.current.push({
+          peerId: from,
+          peer,
+        });
+        setPeers((users) => [...users, { peer, peerId: from, peerName }]);
+      }
+    );
 
-    socket.current.on("receiver-sending-signal", ({ from: peerId, signal }) => {
-      const peerRef = peersRef.current.find((peer) => peer.peerId === peerId);
-      peerRef.peer.signal(signal);
-    });
+    socket.current.on(
+      "receiver-sending-signal",
+      ({ from: peerId, signal, peerName }) => {
+        const peerRef = peersRef.current.find((peer) => peer.peerId === peerId);
+        peerRef.peer.signal(signal);
+
+        setPeers((users) => {
+          return users.map((user) => {
+            if (user.peerId !== peerId) return { ...user };
+            return { ...user, peerName };
+          });
+        });
+      }
+    );
 
     socket.current.emit("join-room", { roomId: roomId, userName: userName });
   };
 
-  const createPeer = (userToSignal) => {
+  const createPeer = (userToSignal, userName) => {
     const peer = new Peer({
       initiator: true,
       trickle: false,
@@ -98,13 +127,14 @@ const ContextProvider = ({ children }) => {
       socket.current.emit("sending-signal", {
         userToSignal,
         signal,
+        myName: userName,
       });
     });
 
     return peer;
   };
 
-  const addPeer = (peerId, peerSignal) => {
+  const addPeer = (peerId, peerSignal, userName) => {
     const peer = new Peer({
       initiator: false,
       trickle: true,
@@ -115,6 +145,7 @@ const ContextProvider = ({ children }) => {
       socket.current.emit("returning-signal", {
         userToSignal: peerId,
         signal,
+        myName: userName,
       });
     });
 
@@ -134,6 +165,9 @@ const ContextProvider = ({ children }) => {
         toggleAudio,
         toggleVideo,
         getUserMedia,
+        audioOn,
+        videoOn,
+        leaveRoom,
       }}
     >
       {children}

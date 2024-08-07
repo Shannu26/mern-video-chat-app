@@ -26,19 +26,31 @@ io.on("connection", (socket) => {
 
     socket.to(roomId).emit("user-connected", socket.id);
 
-    socket.on("sending-signal", ({ userToSignal, signal }) => {
-      console.log(`${socket.id} -> ${userToSignal}`);
-      socket
-        .to(userToSignal)
-        .emit("initiator-sending-signal", { from: socket.id, signal });
-    });
+    socket.on(
+      "sending-signal",
+      ({ userToSignal, signal, myName: peerName }) => {
+        console.log(`${socket.id} -> ${userToSignal}`);
+        socket.to(userToSignal).emit("initiator-sending-signal", {
+          from: socket.id,
+          signal,
+          peerName,
+        });
+      }
+    );
 
-    socket.on("returning-signal", ({ userToSignal, signal }) => {
-      console.log(`${socket.id} -> ${userToSignal}`);
-      socket
-        .to(userToSignal)
-        .emit("receiver-sending-signal", { from: socket.id, signal });
-    });
+    socket.on(
+      "returning-signal",
+      ({ userToSignal, signal, myName: peerName }) => {
+        console.log(`${socket.id} -> ${userToSignal}`);
+        socket
+          .to(userToSignal)
+          .emit("receiver-sending-signal", {
+            from: socket.id,
+            signal,
+            peerName,
+          });
+      }
+    );
 
     socket.on("disconnect", () => {
       console.log(`${socket.id} has left`);
