@@ -7,10 +7,13 @@ import { useNavigate } from "react-router-dom";
 const SocketContext = createContext();
 
 const ContextProvider = ({ children }) => {
-  // My Audio-Video Stream
+  const navigate = useNavigate();
+
   const socket = useRef();
+  // My Audio-Video Stream
   const [stream, setStream] = useState(null);
   const [name, setName] = useState("");
+  const [roomId, setRoomId] = useState("");
   const [myId, setMyId] = useState("");
   const [audioOn, setAudioOn] = useState(true);
   const [videoOn, setVideoOn] = useState(true);
@@ -40,6 +43,12 @@ const ContextProvider = ({ children }) => {
       });
   };
 
+  const setRoomAndName = (roomId, userName) => {
+    setRoomId(roomId);
+    setName(userName);
+    navigate(`/room/${roomId}/media`);
+  };
+
   const toggleAudio = () => {
     if (stream) {
       const audioTrack = stream.getAudioTracks()[0];
@@ -59,7 +68,6 @@ const ContextProvider = ({ children }) => {
   const leaveRoom = () => {
     socket.current.disconnect();
     if (stream) {
-      console.log("Hello");
       stream.getTracks().forEach((track) => track.stop());
       setStream(null);
     }
@@ -74,6 +82,7 @@ const ContextProvider = ({ children }) => {
       peersRef.current.push({
         peerId: userId,
         peer,
+        peerName: "",
       });
       setPeers((users) => [...users, { peer, peerId: userId, peerName: "" }]);
     });
@@ -83,7 +92,11 @@ const ContextProvider = ({ children }) => {
       if (peerRef) peerRef.peer.destroy();
       const peers = peersRef.current.filter((peer) => peer.peerId !== userId);
       peersRef.current = peers;
-      setPeers(peers.map((peer) => peer.peer));
+      setPeers(
+        peers.map((peer) => {
+          return { ...peer };
+        })
+      );
     });
 
     socket.current.on(
@@ -93,6 +106,7 @@ const ContextProvider = ({ children }) => {
         peersRef.current.push({
           peerId: from,
           peer,
+          peerName,
         });
         setPeers((users) => [...users, { peer, peerId: from, peerName }]);
       }
@@ -103,6 +117,10 @@ const ContextProvider = ({ children }) => {
       ({ from: peerId, signal, peerName }) => {
         const peerRef = peersRef.current.find((peer) => peer.peerId === peerId);
         peerRef.peer.signal(signal);
+        peersRef.current = peersRef.current.map((peerRef) => {
+          if (peerRef.peerId !== peerId) return { ...peerRef };
+          return { ...peerRef, peerName };
+        });
 
         setPeers((users) => {
           return users.map((user) => {
@@ -114,6 +132,7 @@ const ContextProvider = ({ children }) => {
     );
 
     socket.current.emit("join-room", { roomId: roomId, userName: userName });
+    navigate(`/room/${roomId}`);
   };
 
   const createPeer = (userToSignal, userName) => {
@@ -168,6 +187,8 @@ const ContextProvider = ({ children }) => {
         audioOn,
         videoOn,
         leaveRoom,
+        name,
+        setRoomAndName,
       }}
     >
       {children}

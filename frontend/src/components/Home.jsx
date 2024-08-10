@@ -4,10 +4,19 @@ import { SocketContext } from "../SocketContext";
 const Home = () => {
   const [userName, setUserName] = useState("");
   const [roomId, setRoomId] = useState("");
-  const { joinRoom } = useContext(SocketContext);
+  const { setRoomAndName } = useContext(SocketContext);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setRoomAndName(roomId, userName);
+  };
+
   return (
     <div className="max-w-md mx-auto mt-10">
-      <form className="bg-white p-6 border rounded shadow-md">
+      <form
+        onSubmit={(e) => handleSubmit(e)}
+        className="bg-white p-6 border rounded shadow-md"
+      >
         <input
           type="text"
           className="placeholder-black shadow appearance-none border rounded w-full p-4 my-4 leading-tight focus:outline-none focus:border-blue-500 font-bold text-l"
@@ -26,9 +35,8 @@ const Home = () => {
         />
         <div className="flex justify-center">
           <button
-            type="button"
+            type="submit"
             className="m-6 mx-auto p-4 w-2/3 h-16 text-xl text-white rounded-full focus:outline-none bg-blue-500"
-            onClick={() => joinRoom(roomId, userName)}
           >
             Join Meeting
           </button>

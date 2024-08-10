@@ -7,19 +7,28 @@ import {
   faVideo,
   faVideoSlash,
 } from "@fortawesome/free-solid-svg-icons";
+import { useNavigate, useParams } from "react-router-dom";
 
 const Media = () => {
+  const navigate = useNavigate();
+  const { roomId } = useParams();
+
   const {
-    stream,
+    name,
     getUserMedia,
     myVideo,
     toggleAudio,
     toggleVideo,
     audioOn,
     videoOn,
+    joinRoom,
   } = useContext(SocketContext);
   useEffect(() => {
-    getUserMedia();
+    if (!name) {
+      navigate("/");
+    } else {
+      getUserMedia();
+    }
   }, []);
   return (
     <div className="flex items-center h-screen mx-4">
@@ -62,7 +71,10 @@ const Media = () => {
       </div>
       <div className="flex flex-col justify-center w-1/3 max-w-md mx-auto py-6 px-2 h-1/2">
         <h1 className="text-center text-3xl">Ready to join ?</h1>
-        <button className="m-6 mx-auto p-4 w-2/3 h-16 text-xl text-white rounded-full focus:outline-none bg-blue-500">
+        <button
+          className="m-6 mx-auto p-4 w-2/3 h-16 text-xl text-white rounded-full focus:outline-none bg-blue-500"
+          onClick={() => joinRoom(roomId, name)}
+        >
           Join Meeting
         </button>
       </div>

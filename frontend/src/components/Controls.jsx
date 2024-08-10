@@ -10,17 +10,11 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 const Controls = () => {
-  const { joinRoom, leaveRoom, toggleAudio, toggleVideo, videoOn, audioOn } =
+  const { leaveRoom, toggleAudio, toggleVideo, videoOn, audioOn } =
     useContext(SocketContext);
   return (
     <div className="fixed bottom-0 bg-black opacity-90 w-full">
       <div className="flex justify-center space-x-20 my-2 mb-4 z-20">
-        <button
-          className="text-white"
-          onClick={() => joinRoom("room-1", "Shannu")}
-        >
-          Join Room
-        </button>
         <button
           onClick={toggleVideo}
           className={`w-20 h-10 text-white rounded-full focus:outline-none ${

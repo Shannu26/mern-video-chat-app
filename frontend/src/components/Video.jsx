@@ -9,12 +9,15 @@ const Video = ({ peer, peerName }) => {
     });
   }, []);
   return (
-    <video
-      ref={ref}
-      autoPlay
-      playsInline
-      className="w-full aspect-video bg-black object-cover border-4 border-black rounded-lg shadow-lg"
-    />
+    <div className="relative">
+      <video
+        ref={ref}
+        autoPlay
+        playsInline
+        className="w-full aspect-video bg-black object-cover border-4 border-black rounded-lg shadow-lg"
+      />
+      <h1 className="absolute font-bold left-3 bottom-3">{peerName}</h1>
+    </div>
   );
 };
 
