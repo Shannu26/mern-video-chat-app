@@ -26,6 +26,13 @@ io.on("connection", (socket) => {
 
     socket.to(roomId).emit("user-connected", socket.id);
 
+    socket.on("sending-message", ({ message, userName }) => {
+      console.log(message, userName);
+      socket
+        .to(roomId)
+        .emit("message-received", { message: message, userName });
+    });
+
     socket.on(
       "sending-signal",
       ({ userToSignal, signal, myName: peerName }) => {
@@ -42,13 +49,11 @@ io.on("connection", (socket) => {
       "returning-signal",
       ({ userToSignal, signal, myName: peerName }) => {
         console.log(`${socket.id} -> ${userToSignal}`);
-        socket
-          .to(userToSignal)
-          .emit("receiver-sending-signal", {
-            from: socket.id,
-            signal,
-            peerName,
-          });
+        socket.to(userToSignal).emit("receiver-sending-signal", {
+          from: socket.id,
+          signal,
+          peerName,
+        });
       }
     );
 

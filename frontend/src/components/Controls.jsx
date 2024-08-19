@@ -7,14 +7,15 @@ import {
   faVideo,
   faVideoSlash,
   faSignOutAlt,
+  faCommentAlt,
 } from "@fortawesome/free-solid-svg-icons";
 
-const Controls = () => {
-  const { leaveRoom, toggleAudio, toggleVideo, videoOn, audioOn } =
+const Controls = ({ toggleChat }) => {
+  const { name, leaveRoom, toggleAudio, toggleVideo, videoOn, audioOn } =
     useContext(SocketContext);
   return (
-    <div className="fixed bottom-0 bg-black opacity-90 w-full">
-      <div className="flex justify-center space-x-20 my-2 mb-4 z-20">
+    <div className="bg-black opacity-90 w-full py-2">
+      <div className="flex justify-center space-x-20 z-20">
         <button
           onClick={toggleVideo}
           className={`w-20 h-10 text-white rounded-full focus:outline-none ${
@@ -30,7 +31,7 @@ const Controls = () => {
         </button>
         <button
           onClick={toggleAudio}
-          className={` w-20 h-10  text-white rounded-full focus:outline-none ${
+          className={`w-20 h-10  text-white rounded-full focus:outline-none ${
             audioOn
               ? "bg-blue-500 hover:bg-blue-600"
               : "bg-red-500 hover:bg-red-600"
@@ -40,6 +41,12 @@ const Controls = () => {
             icon={audioOn ? faVolumeUp : faVolumeMute}
             className="w-6 h-6"
           />
+        </button>
+        <button
+          className={` w-20 h-10  text-white rounded-full focus:outline-none bg-blue-500 hover:bg-blue-600`}
+          onClick={() => toggleChat()}
+        >
+          <FontAwesomeIcon icon={faCommentAlt} className="w-5 h-5" />
         </button>
         <button
           onClick={() => leaveRoom()}

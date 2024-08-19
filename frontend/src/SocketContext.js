@@ -21,6 +21,7 @@ const ContextProvider = ({ children }) => {
   const myVideo = useRef();
   const peersRef = useRef([]);
   const [peers, setPeers] = useState([]);
+  const [messages, setMessages] = useState([]);
 
   useEffect(() => {
     socket.current = io("http://localhost:5050");
@@ -66,6 +67,7 @@ const ContextProvider = ({ children }) => {
   };
 
   const leaveRoom = () => {
+    peersRef.current.forEach((peer) => peer.peer.destroy());
     socket.current.disconnect();
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
@@ -131,8 +133,24 @@ const ContextProvider = ({ children }) => {
       }
     );
 
+    socket.current.on("message-received", ({ message, userName }) => {
+      setMessages((messages) => {
+        return [...messages, { message, user: userName }];
+      });
+    });
+
     socket.current.emit("join-room", { roomId: roomId, userName: userName });
     navigate(`/room/${roomId}`);
+  };
+
+  const sendMessage = (message, userName) => {
+    socket.current.emit("sending-message", {
+      message: message,
+      userName: userName,
+    });
+    setMessages((messages) => {
+      return [...messages, { message, user: userName }];
+    });
   };
 
   const createPeer = (userToSignal, userName) => {
@@ -189,6 +207,8 @@ const ContextProvider = ({ children }) => {
         leaveRoom,
         name,
         setRoomAndName,
+        sendMessage,
+        messages,
       }}
     >
       {children}
