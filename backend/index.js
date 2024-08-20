@@ -26,11 +26,11 @@ io.on("connection", (socket) => {
 
     socket.to(roomId).emit("user-connected", socket.id);
 
-    socket.on("sending-message", ({ message, userName }) => {
-      console.log(message, userName);
+    socket.on("sending-message", ({ message, userName, id }) => {
+      console.log(message, userName, id);
       socket
         .to(roomId)
-        .emit("message-received", { message: message, userName });
+        .emit("message-received", { message: message, userName, id });
     });
 
     socket.on(

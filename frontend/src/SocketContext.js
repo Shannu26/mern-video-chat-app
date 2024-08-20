@@ -12,11 +12,13 @@ const ContextProvider = ({ children }) => {
   const socket = useRef();
   // My Audio-Video Stream
   const [stream, setStream] = useState(null);
+  const [screenStream, setScreenStream] = useState(null);
   const [name, setName] = useState("");
   const [roomId, setRoomId] = useState("");
   const [myId, setMyId] = useState("");
   const [audioOn, setAudioOn] = useState(true);
   const [videoOn, setVideoOn] = useState(true);
+  const [screenShareOn, setScreenShareOn] = useState(false);
 
   const myVideo = useRef();
   const peersRef = useRef([]);
@@ -133,9 +135,9 @@ const ContextProvider = ({ children }) => {
       }
     );
 
-    socket.current.on("message-received", ({ message, userName }) => {
+    socket.current.on("message-received", ({ message, userName, id }) => {
       setMessages((messages) => {
-        return [...messages, { message, user: userName }];
+        return [...messages, { message, user: userName, user_id: id }];
       });
     });
 
@@ -147,10 +149,49 @@ const ContextProvider = ({ children }) => {
     socket.current.emit("sending-message", {
       message: message,
       userName: userName,
+      id: socket.current.id,
     });
     setMessages((messages) => {
-      return [...messages, { message, user: userName }];
+      return [...messages, { message, user: userName, user_id: myId }];
     });
+  };
+
+  const startScreenShare = () => {
+    navigator.mediaDevices
+      .getDisplayMedia({ vide: true })
+      .then((screenStream) => {
+        screenStream.getVideoTracks()[0].onended = () => {
+          stopScreenShare();
+        };
+        setScreenStream(screenStream);
+
+        peers.forEach(({ peer }) => {
+          peer.replaceTrack(
+            stream.getVideoTracks()[0],
+            screenStream.getVideoTracks()[0],
+            stream
+          );
+        });
+      });
+  };
+
+  const stopScreenShare = () => {
+    screenStream.getTracks().forEach((track) => track.stop());
+    setScreenStream(null);
+
+    peers.forEach(({ peer }) => {
+      peer.replaceTrack(
+        screenStream.getVideoTracks()[0],
+        stream.getVideoTracks()[0],
+        stream
+      );
+    });
+  };
+
+  const toggleScreenShare = () => {
+    if (!screenShareOn) startScreenShare();
+    else stopScreenShare();
+    setScreenShareOn((prevState) => !prevState);
   };
 
   const createPeer = (userToSignal, userName) => {
@@ -209,6 +250,9 @@ const ContextProvider = ({ children }) => {
         setRoomAndName,
         sendMessage,
         messages,
+        screenStream,
+        screenShareOn,
+        toggleScreenShare,
       }}
     >
       {children}

@@ -5,7 +5,7 @@ import Controls from "./Controls";
 import Chat from "./Chat";
 
 const MeetingRoom = () => {
-  const { stream, myVideo, peers, getUserMedia, name, messages } =
+  const { stream, screenStream, myVideo, peers, getUserMedia, name, messages } =
     useContext(SocketContext);
 
   const [showChat, setShowChat] = useState(false);
@@ -25,15 +25,16 @@ const MeetingRoom = () => {
   const classes = getGridClasses(peers.length);
 
   useEffect(() => {
-    myVideo.current.srcObject = stream;
-  }, []);
+    if (screenStream) myVideo.current.srcObject = screenStream;
+    else myVideo.current.srcObject = stream;
+  }, [screenStream]);
 
   console.log(messages);
 
   return (
-    <div className="overflow-hidden h-screen flex flex-col">
-      <Controls className="flex-none" toggleChat={toggleChat} />
-      <div className="w-full h-full flex">
+    <div className="overflow-hidden h-screen max-h-screen flex flex-col">
+      <Controls toggleChat={toggleChat} />
+      <div className="w-full h-[91%] flex">
         <div
           className={`${
             showChat ? "w-3/4" : "w-full"
@@ -60,7 +61,7 @@ const MeetingRoom = () => {
           })}
         </div>
         {showChat && (
-          <div className="w-1/4">
+          <div className="w-1/4 h-full">
             <Chat />
           </div>
         )}

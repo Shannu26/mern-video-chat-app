@@ -1,4 +1,3 @@
-import VideoPlayer from "./components/VideoPlayer";
 import Home from "./components/Home";
 import Media from "./components/Media";
 import MeetingRoom from "./components/MeetingRoom";
@@ -13,10 +12,6 @@ export default function App() {
         <Route path="/room/:roomId/media" element={<Media />} />
         <Route path="/room/:roomId" element={<MeetingRoom />} />
       </Routes>
-      {/* <VideoPlayer /> */}
-      {/* <Options>
-        <Notifications />
-      </Options> */}
     </div>
   );
 }
