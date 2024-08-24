@@ -9,13 +9,13 @@ const Video = ({ peer, peerName }) => {
     });
   }, []);
   return (
-    <div className="h-full flex justify-center">
-      <div className="relative flex justify-center">
+    <div className="w-[90%] flex justify-center">
+      <div className="w-full relative flex justify-center">
         <video
           ref={ref}
           autoPlay
           playsInline
-          className="w-full bg-black object-cover border-4 border-black rounded-lg shadow-lg"
+          className={`m-1 w-full bg-black object-cover border-4 border-white rounded-lg shadow-lg`}
         />
         <h1 className="absolute font-bold left-10 bottom-3">{peerName}</h1>
       </div>
